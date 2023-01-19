@@ -20,26 +20,31 @@
     function signOut() {
         pb.authStore.clear();
     }
-    async function getUserId(username:string){
-        const user = await pb.collection('users').getFirstListItem(`username = "${username}"`)
-        return user.id
+    async function getUserId(username: string) {
+        const user = await pb
+            .collection("users")
+            .getFirstListItem(`username = "${username}"`);
+        return user.id;
     }
     async function registerIt() {
-        console.log(usernames)
-        let users:string[] = []
-        for(let i = 0; i< usernames.length; i++){
-            console.log(usernames[i])
-            console.log(await getUserId(usernames[i]))
-            users.push(await getUserId(usernames[i]))
+        try {
+            let users: string[] = [];
+            for (let i = 0; i < usernames.length; i++) {
+                users.push(await getUserId(usernames[i]));
+            }
+            let data = {
+                session_name: session_name,
+                session_passwod: session_pw,
+                players: users,
+                dm: $currentUser.id,
+            };
+            const record = await pb.collection("sessions").create(data);
+        } catch (e) {
+            console.error(e);
+            alert("An error occured, did you enter the correct usernames?");
         }
-        let data = {
-            session_name: "test",
-            session_passwod: "test",
-            players: users,
-            dm: $currentUser.id
-        };
-        console.log(data)
-        const record = await pb.collection("session").create(data);
+        await getSessions();
+        showCreateSession();
     }
     function lessPlayer() {
         if (usernames.length == 1) return;
@@ -53,15 +58,15 @@
         usernames = usernames;
     }
 
-    /*async function logSessions(){
-        console.log($userSessions)
-    }*/
-
-    onMount(async () => {
+    async function getSessions() {
         $userSessions = await pb.collection("sessions").getFullList(100, {
             filter: `dm = "${$currentUser.id}" || players ~ "${$currentUser.id}"`,
             expand: "players,dm",
         });
+    }
+
+    onMount(async () => {
+        await getSessions();
     });
 </script>
 
@@ -74,15 +79,24 @@
             {#each $userSessions as session}
                 <div class="inline-block px-3">
                     <div
-                        class="w-64 h-64 max-w-xs overflow-hidden rounded-lg shadow-md bg-white hover:shadow-xl transition-shadow duration-300 ease-in-out"
+                        class="relative w-64 h-64 max-w-xs overflow-hidden rounded-lg shadow-md bg-white hover:shadow-xl transition-shadow duration-300 ease-in-out"
                     >
-                        <ul>
-                            <li>{session.session_name}</li>
-                            <li>{session.expand.dm.username}</li>
+                        <ul class="h-full absolute right-0 top-0">
+                            <li class="text-center font-bold text-xl underline">
+                                {session.session_name}
+                            </li>
+                            <li class="text-sm text-center italic">
+                                {session.expand.dm.username}'s session
+                            </li>
+                            <li class="underline text-lg font-bold text-center">Players</li>
                             {#each session.expand.players as player}
-                                <li>{player.username}</li>
+                                <li class="text-center text-lg">{player.username}</li>
                             {/each}
-                            <li>{session.created.slice(0, 10)}</li>
+                            <li
+                                class="text-center text-sm text-gray-600 italic absolute bottom-0 right-0 left-0"
+                            >
+                                {session.created.slice(0, 10)}
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -94,7 +108,6 @@
         class="text-gray-200 border-2 border-gray-700 px-5 py-2 mt-1 mb-0 rounded-xl absolute bottom-1/4 bg-gray-500"
         >Create new session</button
     >
-    <!--<button on:click={logSessions} class="absolute bottom-400">Log sessions</button>-->
     <button
         on:click={signOut}
         class="bg-red-700 text-gray-200 border-2 border-gray-700 px-5 py-2 mt-2 mb-0 rounded-xl absolute top-2 right-2"
