@@ -1,7 +1,7 @@
 <script>
   import Dash from "./lib/Dash.svelte";
 import Login from "./lib/Login.svelte";
-    import { currentUser } from "./lib/pocketbase";
+  import { currentUser } from "./lib/pocketbase";
     
 </script>
 

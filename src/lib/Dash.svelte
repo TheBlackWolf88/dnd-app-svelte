@@ -4,9 +4,11 @@
     import { each } from "svelte/internal";
     import { writable } from "svelte/store";
     import App from "../App.svelte";
-    import { userSessions } from "./globals";
+    import { userSessions, inSession } from "./globals";
     import { currentUser, pb } from "./pocketbase";
-
+    import Session from "./Session.svelte";
+    
+    let currentSession:object;
     let showCSModal = false;
     let usernames: string[] = [""];
     let session_name: string;
@@ -65,11 +67,16 @@
         });
     }
 
+    function openSession(session:object){
+        $inSession = true;
+        currentSession = session
+    }
+
     onMount(async () => {
         await getSessions();
     });
 </script>
-
+{#if !$inSession}
 <h1 class="absolute top-1/4 text-3xl text-white font-bold">
     Welcome {$currentUser.username}!
 </h1>
@@ -78,10 +85,11 @@
         <div class="flex flex-nowrap ml-5 ">
             {#each $userSessions as session}
                 <div class="inline-block px-3">
+                    <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <div
-                        class="relative w-64 h-64 max-w-xs overflow-hidden rounded-lg shadow-md bg-white hover:shadow-xl transition-shadow duration-300 ease-in-out"
+                        on:click={openSession(session)} class="relative w-64 h-64 max-w-xs overflow-hidden rounded-lg shadow-md bg-white hover:shadow-xl transition-shadow duration-300 ease-in-out"
                     >
-                        <ul class="h-full absolute right-0 top-0">
+                        <ul class="h-full absolute right-0 left-0 top-0">
                             <li class="text-center font-bold text-xl underline">
                                 {session.session_name}
                             </li>
@@ -184,7 +192,9 @@
         </div>
     </div>
 {/if}
-
+{:else}
+<Session session={currentSession}/>
+{/if}
 <style>
     .hide-scroll-bar {
         -ms-overflow-style: none;
