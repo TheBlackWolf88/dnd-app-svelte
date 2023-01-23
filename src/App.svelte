@@ -1,9 +1,9 @@
 <script>
-    import { onMount } from "svelte";
+  import { onMount } from "svelte";
   import Dash from "./lib/Dash.svelte";
-import Login from "./lib/Login.svelte";
+  import Login from "./lib/Login.svelte";
   import { currentUser, pb } from "./lib/pocketbase";
-   onMount(async()=> await pb.authStore.clear) 
+  //onMount(()=> {pb.authStore.clear()}) 
 </script>
 
 <style global>

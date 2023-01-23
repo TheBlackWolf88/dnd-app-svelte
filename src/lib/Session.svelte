@@ -12,6 +12,15 @@
     let characterCreationScreen = false
 
     let stats = [0,0,0,0,0,0]
+   let canGenAgain =true; 
+
+    let pages = {
+        0 : ['Name', 'Race', 'Class', 'Subclass (optional)'],
+        1: ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma']
+
+    }
+    let i = 0
+    let canSubmit = false;
 
 
     function backToDash(){
@@ -19,10 +28,17 @@
     }
 
     function generateStats(){
+        if(!canGenAgain) return
         for (let i = 0; i< stats.length; i++){
-            stats[i] = getRandomIntInclusive(3, 18);
+            let rolls = [getRandomIntInclusive(1,6),getRandomIntInclusive(1,6),getRandomIntInclusive(1,6),getRandomIntInclusive(1,6),]
+            rolls = rolls.sort()
+            console.log(rolls)
+            rolls = rolls.slice(1,4)
+            console.log(rolls)
+            stats[i] = rolls[0]+rolls[1]+rolls[2]
         }
         stats = stats
+        canGenAgain = false
     }
 
     async function getCharacterData() {
@@ -33,34 +49,25 @@
             console.error("No characters associated with account. 404")    
         }
     }
+    function incPage(){
+        if(i == Object.keys(pages).length-1) return;
+        if(i == Object.keys(pages).length-2) canSubmit = true;
+        i++;
+    }
 
-/*
-So I tought my first comment should explain not the code but that shithole I call my database. Most especially the character table, because it in fact is confusing.
-characters table
-ability_scores: A JSON file containing the 6 basic stats (str, dex, con, int, wis, cha).
-basic_stats: another JSON file which contains the following keys:class(+subclass), level,ac, speed, current_hp, max_hp, thp, hit_dice, prof_b, spellcasting_ability.
-feats: text, list of feats
-profs_langs: JSON with two very obvious keys: proficiencies,equipment_profs, languages
-weapons: a text field at last. describes the weapon, in this fashion "[name], [behaves as], [array of bonus_features]"
-spells: a JSON of a bitch again. has spell levels as keys, and arrays of spell names as values.
-inventory: JSON, itemname:count fashion
-appearance: JSON with keys: age, height, weight, eyes, hair, skin, optional__url_to_art
-background: JSON shit with keys: pers_traits, ideals, bonds, flaws, allies_orgs, backstory
-
-That's all folks. Quite simple right?
-na megyek, mert erre inni kell(ene)
-*/
 
 async function showCreateCharacterForm() {
     characterCreationScreen ? characterCreationScreen = false : characterCreationScreen=true
+    i = 0
+    canSubmit = false
 }
 
 async function createCharacter() {
-    
+   console.log('Prevent hasn"t defaulted') 
 }
 
 onMount(async() => {
-    await getCharacterData() 
+    await getCharacterData()
 })
 
 </script>
@@ -87,11 +94,23 @@ onMount(async() => {
             <form on:submit|preventDefault={createCharacter}></form>
                 <ul>
                     <h1 class="font-bold text-xl underline text-center">Create a character</h1>
+                    <br>
+                    {#if i==1}
 
                     <li><button on:click|preventDefault={generateStats}>Generate stats</button></li>
                     <li>stats: [{stats}]</li>
                     <br>
-                    <li><input type="text" placeholder="Character name"></li>
+                    {/if}
+                    {#each pages[i] as page}
+                        <li><input placeholder="{page}"></li>
+                        <br>
+                    {/each}
+                    {#if !canSubmit}
+                        <li class=" flex justify-center"><button class="w=fit text-gray-200 border-2 border-gray-700 px-5 py-2 mt-2 mb-0 rounded-xl bg-green-700" on:click|preventDefault={incPage}>Next</button></li>
+                    {:else}
+                        <li class=" flex justify-center"><button class="w=fit text-gray-200 border-2 border-gray-700 px-5 py-2 mt-2 mb-0 rounded-xl bg-green-700">Submit</button></li>
+                    {/if}
+   
                 </ul>
         </div>
    </div> 
