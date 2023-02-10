@@ -39,7 +39,8 @@
     intelligence: null,
     wisdom: null,
     charisma: null,
-    givenProficiencies: []
+    givenProficiencies: [],
+    savingThrows: [],
   };
 
 
@@ -103,6 +104,7 @@
     pClass = await (await getClass()).json()
     submitted = true;
     character.givenProficiencies = pClass.proficiencies.map((item:any) => {
+      console.log(item['name'])
       return item['name'].startsWith("Saving") ? null : item['name']
     }).filter((item) => {
       return item != null
@@ -111,8 +113,15 @@
       return item.item['name']
     })
     console.log(profChoices)
+    character.savingThrows = pClass.proficiencies.map((item) => {
+      return item['name'].startsWith("Saving") ? item['name'].slice(13) : null
+    }).filter((item) => {
+      return item != null
+    })
+
     
   }
+
 
   onMount(async () => {
     await getCharacterData();
